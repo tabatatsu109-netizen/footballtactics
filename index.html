@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tactical Board">
+  <link rel="manifest" href="manifest.json">
+  <title>Tactical Coach Board</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header id="header">
+      <div class="header-left">
+        <div class="logo">
+          <span class="logo-icon">⬡</span>
+          <span class="logo-text">TACTICAL</span>
+          <span class="logo-sub">COACH BOARD</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="icon-btn" id="saveBtn" title="保存">💾</button>
+        <button class="icon-btn" id="loadBtn" title="読込">📂</button>
+        <button class="icon-btn" id="resetBtn" title="リセット">↺</button>
+      </div>
+    </header>
+
+    <!-- Main Layout -->
+    <main id="main">
+      <!-- Left Panel: Controls -->
+      <aside id="left-panel">
+        <!-- Formation Section -->
+        <section class="panel-section">
+          <h3 class="section-title"><span class="dot red"></span>自チーム</h3>
+          <div class="formation-grid" id="myFormationGrid">
+            <button class="formation-btn active" data-team="my" data-formation="4-4-2">4-4-2</button>
+            <button class="formation-btn" data-team="my" data-formation="4-2-3-1">4-2-3-1</button>
+            <button class="formation-btn" data-team="my" data-formation="4-3-3">4-3-3</button>
+            <button class="formation-btn" data-team="my" data-formation="3-4-2-1">3-4-2-1</button>
+            <button class="formation-btn" data-team="my" data-formation="3-5-2">3-5-2</button>
+          </div>
+        </section>
+
+        <section class="panel-section">
+          <h3 class="section-title"><span class="dot blue"></span>相手チーム</h3>
+          <div class="formation-grid" id="oppFormationGrid">
+            <button class="formation-btn active" data-team="opp" data-formation="4-4-2">4-4-2</button>
+            <button class="formation-btn" data-team="opp" data-formation="4-2-3-1">4-2-3-1</button>
+            <button class="formation-btn" data-team="opp" data-formation="4-3-3">4-3-3</button>
+            <button class="formation-btn" data-team="opp" data-formation="3-4-2-1">3-4-2-1</button>
+            <button class="formation-btn" data-team="opp" data-formation="3-5-2">3-5-2</button>
+          </div>
+        </section>
+
+        <!-- Phase Section -->
+        <section class="panel-section">
+          <h3 class="section-title">⚡ フェーズ</h3>
+          <div class="phase-tabs">
+            <button class="phase-tab active" data-phase="attack">攻撃</button>
+            <button class="phase-tab" data-phase="defense">守備</button>
+          </div>
+        </section>
+
+        <!-- Pattern Section -->
+        <section class="panel-section">
+          <h3 class="section-title">📋 パターン</h3>
+          <div class="pattern-list" id="patternList">
+            <!-- populated by JS -->
+          </div>
+        </section>
+
+        <!-- Playback Controls -->
+        <section class="panel-section playback-section">
+          <div class="playback-controls">
+            <button class="play-btn" id="playBtn">▶ 再生</button>
+            <button class="stop-btn" id="stopBtn">■ 停止</button>
+          </div>
+          <div class="speed-control">
+            <label>速度</label>
+            <input type="range" id="speedSlider" min="0.5" max="2" step="0.1" value="1">
+            <span id="speedLabel">1.0x</span>
+          </div>
+        </section>
+
+        <!-- Ball Toggle -->
+        <section class="panel-section">
+          <div class="ball-toggle-row">
+            <span>⚽ ボール表示</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="ballToggle" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="ball-info" id="ballInfo">ドラッグでボール移動</div>
+        </section>
+      </aside>
+
+      <!-- Center: Pitch -->
+      <div id="pitch-container">
+        <div id="pitch-wrapper">
+          <canvas id="pitch" width="360" height="540"></canvas>
+          <div id="players-layer"></div>
+          <div id="ball-el" class="ball" title="⚽">⚽</div>
+          <div id="arrows-layer">
+            <svg id="arrows-svg" width="360" height="540"></svg>
+          </div>
+        </div>
+        <!-- Pitch Labels -->
+        <div class="pitch-label top">相手ゴール</div>
+        <div class="pitch-label bottom">自ゴール</div>
+      </div>
+
+      <!-- Right Panel: Saved Patterns -->
+      <aside id="right-panel">
+        <section class="panel-section">
+          <h3 class="section-title">💾 保存済み</h3>
+          <div id="savedPatternsList" class="saved-list">
+            <div class="empty-state">保存されたパターンはありません</div>
+          </div>
+        </section>
+
+        <section class="panel-section">
+          <h3 class="section-title">📝 メモ</h3>
+          <textarea id="memoArea" placeholder="戦術メモを入力..."></textarea>
+        </section>
+
+        <section class="panel-section">
+          <h3 class="section-title">📊 現在の設定</h3>
+          <div class="info-box" id="infoBox">
+            <div class="info-row"><span>自チーム:</span><span id="infoMyFormation">4-4-2</span></div>
+            <div class="info-row"><span>相手:</span><span id="infoOppFormation">4-4-2</span></div>
+            <div class="info-row"><span>フェーズ:</span><span id="infoPhase">攻撃</span></div>
+            <div class="info-row"><span>パターン:</span><span id="infoPattern">-</span></div>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <!-- Bottom Tab Bar (Mobile) -->
+    <nav id="bottom-nav">
+      <button class="nav-tab active" data-tab="formation">
+        <span class="nav-icon">⬡</span>
+        <span>フォーメ</span>
+      </button>
+      <button class="nav-tab" data-tab="pattern">
+        <span class="nav-icon">📋</span>
+        <span>パターン</span>
+      </button>
+      <button class="nav-tab" data-tab="play">
+        <span class="nav-icon">▶</span>
+        <span>再生</span>
+      </button>
+      <button class="nav-tab" data-tab="save">
+        <span class="nav-icon">💾</span>
+        <span>保存</span>
+      </button>
+    </nav>
+
+    <!-- Mobile Drawer -->
+    <div id="mobile-drawer" class="drawer">
+      <div class="drawer-handle"></div>
+      <div class="drawer-content" id="drawerContent"></div>
+    </div>
+    <div id="drawer-overlay"></div>
+
+    <!-- Toast -->
+    <div id="toast"></div>
+
+    <!-- Save Dialog -->
+    <div id="saveDialog" class="dialog-overlay" style="display:none">
+      <div class="dialog">
+        <h3>パターンを保存</h3>
+        <input type="text" id="saveNameInput" placeholder="パターン名を入力...">
+        <div class="dialog-buttons">
+          <button class="dialog-btn cancel" id="saveCancelBtn">キャンセル</button>
+          <button class="dialog-btn confirm" id="saveConfirmBtn">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(() => console.log('SW registered'))
+          .catch(err => console.log('SW error:', err));
+      });
+    }
+  </script>
+</body>
+</html>
